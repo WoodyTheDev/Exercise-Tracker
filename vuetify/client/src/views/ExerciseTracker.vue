@@ -2,25 +2,43 @@
   <ToolBar />
   <v-container class="mt-4">
     <h1 class="text-h3 mb-4 text-deep-orange-lighten-1 font-weight-bold">
-      Track your exercice
+      Track your exercise
     </h1>
-    <v-layout row>
-      <v-flex>
-        <v-combobox
-          v-model="selectedExercise"
-          :clearable="isClearable"
-          bg-color="deep-orange-lighten-1"
-          color="deep-orange-lighten-2"
-          label="Select an exercise"
-          :items="exercises"
-        ></v-combobox>
-      </v-flex>
-      <v-flex>
-        <v-btn v-if="!selectedExercise" class="mr-2" variant="outlined">
-          Add
-        </v-btn>
-      </v-flex>
-    </v-layout>
+
+    <v-combobox
+      ref="exerciseCombobox"
+      v-model="selectedExercise"
+      :clearable="isClearable"
+      :persistent-clear="isClearable"
+      bg-color="deep-orange-lighten-1"
+      color="deep-orange-lighten-2"
+      label="Select an exercise"
+      :items="exercises"
+      hide-details="auto"
+    ></v-combobox>
+
+    <v-combobox
+      v-model="selectedAmount"
+      :clearable="isClearable"
+      :persistent-clear="isClearable"
+      bg-color="deep-orange-lighten-1"
+      color="deep-orange-lighten-2"
+      label="Repititions/Km"
+      :items="amount"
+      hide-details="auto"
+      class="mt-4"
+    ></v-combobox>
+
+    <v-row justify="end" class="mt-4 mr-0">
+      <v-btn
+        size="large"
+        variant="flat"
+        color="deep-orange-lighten-1"
+        :disabled="!selectedExercise || !selectedAmount"
+      >
+        Add
+      </v-btn>
+    </v-row>
   </v-container>
 </template>
 
@@ -37,6 +55,29 @@ export default defineComponent({
     return {
       isClearable: true,
       selectedExercise: null,
+      selectedAmount: null,
+      amount: [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+      ],
       exercises: [
         "California",
         "Colorado",

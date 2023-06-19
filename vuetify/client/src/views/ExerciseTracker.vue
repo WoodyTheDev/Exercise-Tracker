@@ -5,11 +5,19 @@
       Track your exercise
     </h1>
 
-    <ExerciseComboBox v-model="selectedExercise" />
-    <AmountComboBox v-model="selectedAmount" class="mt-4" />
+    <ExerciseComponent
+      ref="exerciseComponent"
+      v-model:exerciseName="exercise.name"
+      v-model:exerciseAmount="exercise.amount"
+    />
 
     <v-row justify="end" class="mt-4 mr-0">
-      <v-btn size="large" variant="flat" color="deep-orange-lighten-1">
+      <v-btn
+        size="large"
+        variant="flat"
+        color="deep-orange-lighten-1"
+        @click="addExercise"
+      >
         Add
       </v-btn>
     </v-row>
@@ -19,19 +27,23 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import ToolBar from "@/components/ToolBar.vue";
-import ExerciseComboBox from "@/components/ExerciseComboBox.vue";
-import AmountComboBox from "@/components/AmountComboBox.vue";
+import ExerciseComponent from "@/components/ExerciseComponent.vue";
+import { Exercise } from "@/components/ExerciseComponent.d";
 
 export default defineComponent({
   name: "ExerciseTracker",
 
-  components: { ToolBar, ExerciseComboBox, AmountComboBox },
+  components: { ToolBar, ExerciseComponent },
 
   data() {
     return {
-      selectedExercise: null,
-      selectedAmount: null,
+      exercise: {} as Exercise,
     };
+  },
+  methods: {
+    addExercise(e: Event) {
+      (this.$refs.exerciseComponent as typeof ExerciseComponent).addExercise(e);
+    },
   },
 });
 </script>

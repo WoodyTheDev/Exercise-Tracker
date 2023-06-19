@@ -7,4 +7,13 @@ module.exports = defineConfig({
       // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vuetify-loader
     },
   },
+  configureWebpack: {
+    devServer: {
+      proxy: {
+        "/api": {
+          target: "http://localhost:3000",
+        },
+      },
+    },
+  },
 });

@@ -4,6 +4,7 @@
     v-model:items-per-page="itemsPerPage"
     :items="exercises"
     :headers="headers"
+    :item-key="itemKey"
     item-value="exercise"
   >
     <template v-slot:top>
@@ -17,14 +18,16 @@
             <v-container>
               <v-row>
                 <v-col cols="12">
-                  <ExerciseComboBox v-model="editedItem.name" />
-                </v-col>
-                <v-col cols="12">
-                  <AmountComboBox v-model="editedItem.amount" />
+                  <ExerciseComponent
+                    v-model:exerciseName="editedItem.name"
+                    v-model:exerciseAmount="editedItem.amount"
+                    v-model:isActive="isActive"
+                  />
                 </v-col>
                 <v-col cols="12">
                   <v-text-field
                     v-model="editedItem.date"
+                    :value="formattedDate()"
                     label="Date"
                     bg-color="deep-orange-lighten-1"
                     color="deep-orange-lighten-2"
@@ -68,14 +71,14 @@
         </v-card>
       </v-dialog>
     </template>
+    <template v-slot:[`item.date`]="{ item }">
+      {{ new Date(item.columns.date).toLocaleDateString("de-DE") }}
+    </template>
     <template v-slot:[`item.actions`]="{ item }">
       <v-icon size="small" class="me-2" @click="editItem(item.raw)">
         mdi-pencil
       </v-icon>
       <v-icon size="small" @click="deleteItem(item.raw)"> mdi-delete </v-icon>
-    </template>
-    <template v-slot:no-data>
-      <v-btn color="primary" @click="initialize"> Reset </v-btn>
     </template>
   </VDataTable>
 </template>
@@ -83,23 +86,19 @@
 import { defineComponent } from "vue";
 import ToolBar from "@/components/ToolBar.vue";
 import { VDataTable } from "vuetify/lib/labs/components.mjs";
-import ExerciseComboBox from "@/components/ExerciseComboBox.vue";
-import AmountComboBox from "@/components/AmountComboBox.vue";
+import ExerciseComponent from "@/components/ExerciseComponent.vue";
+import { Exercise } from "@/components/ExerciseComponent.d";
 
 type UnwrapReadonlyArrayType<A> = A extends Readonly<Array<infer I>>
   ? UnwrapReadonlyArrayType<I>
   : A;
 type DT = InstanceType<typeof VDataTable>;
 type ReadonlyDataTableHeader = UnwrapReadonlyArrayType<DT["headers"]>;
-type Exercise = {
-  name: string;
-  amount: number;
-  date: string;
-};
+
 export default defineComponent({
   name: "ExerciseActivity",
 
-  components: { ToolBar, VDataTable, ExerciseComboBox, AmountComboBox },
+  components: { ToolBar, VDataTable, ExerciseComponent },
 
   data() {
     return {
@@ -114,16 +113,9 @@ export default defineComponent({
       ] as Array<ReadonlyDataTableHeader>,
       exercises: [] as Array<Exercise>,
       editedIndex: -1,
-      editedItem: {
-        name: "",
-        amount: 0,
-        date: "",
-      },
-      defaultItem: {
-        name: "",
-        amount: 0,
-        date: "",
-      },
+      editedItem: {} as Exercise,
+      defaultItem: {} as Exercise,
+      isActive: true,
     };
   },
   watch: {
@@ -134,27 +126,16 @@ export default defineComponent({
       val || this.closeDelete();
     },
   },
-
-  created() {
-    this.initialize();
+  async mounted() {
+    const response = await this.axios.get("api/exerciseList/");
+    this.exercises = response.data;
+  },
+  computed: {
+    itemKey() {
+      return this.headers[0].key;
+    },
   },
   methods: {
-    initialize() {
-      this.exercises = [
-        { name: "Pushups", amount: 10, date: "2021-01-01" },
-        { name: "Pushups", amount: 10, date: "2021-01-01" },
-        { name: "Pushups", amount: 10, date: "2021-01-01" },
-        { name: "Pushups", amount: 10, date: "2021-01-01" },
-        { name: "Pushups", amount: 10, date: "2021-01-01" },
-        { name: "Pushups", amount: 10, date: "2021-01-01" },
-        { name: "Pushups", amount: 10, date: "2021-01-01" },
-        { name: "Pushups", amount: 10, date: "2021-01-01" },
-      ];
-    },
-    editItem(item: Exercise) {
-      this.editedItem = Object.assign({}, item);
-      this.dialogEdit = true;
-    },
     closeEdit() {
       this.dialogEdit = false;
       setTimeout(() => {
@@ -169,8 +150,28 @@ export default defineComponent({
         this.editedIndex = -1;
       });
     },
-    saveEdit() {
-      Object.assign(this.exercises[this.editedIndex], this.editedItem);
+    editItem(item: Exercise) {
+      this.editedItem = Object.assign({}, item);
+      this.editedIndex = this.exercises.indexOf(item);
+      this.dialogEdit = true;
+    },
+    async saveEdit() {
+      try {
+        const response = await this.axios.put(
+          "api/exerciseList/ " + this.editedItem._id,
+          {
+            name: this.editedItem.name,
+            amount: this.editedItem.amount,
+            date: new Date(this.editedItem.date),
+          }
+        );
+        console.log(response.data);
+        console.log(this.editedIndex);
+        Object.assign(this.exercises[this.editedIndex], response.data);
+        console.log(this.exercises);
+      } catch (error) {
+        console.error(error);
+      }
       this.closeEdit();
     },
     deleteItem(item: Exercise) {
@@ -178,9 +179,17 @@ export default defineComponent({
       this.editedItem = Object.assign({}, item);
       this.dialogDelete = true;
     },
-    deleteItemConfirm() {
-      this.exercises.splice(this.editedIndex, 1);
+    async deleteItemConfirm() {
+      try {
+        await this.axios.delete("api/exerciseList/" + this.editedItem._id);
+        this.exercises.splice(this.editedIndex, 1);
+      } catch (error) {
+        console.error(error);
+      }
       this.closeDelete();
+    },
+    formattedDate() {
+      return new Date(this.editedItem.date).toISOString().substring(0, 10);
     },
   },
 });

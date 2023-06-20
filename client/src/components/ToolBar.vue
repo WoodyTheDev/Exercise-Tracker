@@ -36,7 +36,7 @@ export default {
     return {
       drawer: false,
       links: [
-        { icon: "mdi-clock-edit", text: "Tracker", route: "/ExerciseTracker" },
+        { icon: "mdi-clock-edit", text: "Tracker", route: "/" },
         { icon: "mdi-poll", text: "Activity", route: "/ExerciseActivity" },
       ],
     };

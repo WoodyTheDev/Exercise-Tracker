@@ -16,4 +16,12 @@ module.exports = defineConfig({
       },
     },
   },
+  pwa: {
+    name: "Exercise Tracker",
+    themeColor: "#ff5722",
+    workboxPluginMode: "InjectManifest",
+    workboxOptions: {
+      swSrc: "./src/service-worker.js",
+    },
+  },
 });

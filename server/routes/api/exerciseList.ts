@@ -5,7 +5,6 @@ import { Request, Response } from 'express';
 const router = Router()
 
 router.get('/', async (req: Request, res: Response) => {
-    console.log(Exercise);
     try {
         const exerciseList = await Exercise.find()
         if (!exerciseList) throw new Error('No exercise List found')

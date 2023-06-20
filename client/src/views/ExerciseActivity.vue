@@ -50,6 +50,15 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+      <v-dialog v-model="dialogImage" max-width="500px">
+        <v-card>
+          <v-card-title class="text-h5">Image</v-card-title>
+          <v-btn color="deep-orange-lighten-1" @click="dialogImage = false"
+            >Close</v-btn
+          >
+          <v-img cover :src="base64data" />
+        </v-card>
+      </v-dialog>
       <v-dialog v-model="dialogDelete" max-width="500px">
         <v-card>
           <v-card-title class="text-h5"
@@ -78,6 +87,9 @@
       <v-icon size="small" class="me-2" @click="editItem(item.raw)">
         mdi-pencil
       </v-icon>
+      <v-icon size="small" class="me-2" @click="openImage(item.raw)">
+        mdi-image
+      </v-icon>
       <v-icon size="small" @click="deleteItem(item.raw)"> mdi-delete </v-icon>
     </template>
   </VDataTable>
@@ -103,6 +115,7 @@ export default defineComponent({
   data() {
     return {
       dialogEdit: false,
+      dialogImage: false,
       dialogDelete: false,
       itemsPerPage: 10,
       headers: [
@@ -116,6 +129,7 @@ export default defineComponent({
       editedItem: {} as Exercise,
       defaultItem: {} as Exercise,
       isActive: true,
+      base64data: "",
     };
   },
   watch: {
@@ -149,6 +163,10 @@ export default defineComponent({
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
       });
+    },
+    openImage(item: Exercise) {
+      this.base64data = item.picture;
+      this.dialogImage = true;
     },
     editItem(item: Exercise) {
       this.editedItem = Object.assign({}, item);

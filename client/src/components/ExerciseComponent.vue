@@ -61,16 +61,14 @@ export default defineComponent({
     this.updateExerciseAmountCombobox(this.exerciseAmount);
   },
   methods: {
-    async addExercise(e: Event) {
+    addExerciseToCombobox(e: Event, name: string) {
       e.preventDefault();
-      const response = await this.axios.post("api/exerciseList/", {
-        name: this.exerciseName,
-        amount: this.exerciseAmount,
-        date: new Date(),
-      });
-      if (!this.exerciseNameList.includes(response.data.name)) {
-        this.exerciseNameList.push(response.data.name);
+      if (!this.exerciseNameList.includes(name)) {
+        this.exerciseNameList.push(name);
       }
+      this.reset();
+    },
+    reset() {
       (this.$refs.exerciseNameCombobox as VCombobox).reset();
       (this.$refs.exerciseAmountCombobox as VCombobox).reset();
     },

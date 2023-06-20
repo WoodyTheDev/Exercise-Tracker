@@ -4,6 +4,7 @@ interface Exercise {
   name: string;
   amount: number;
   date: Date;
+  picture: string;
 }
 
 const ExerciseSchema = new Schema<Exercise>({
@@ -18,6 +19,9 @@ const ExerciseSchema = new Schema<Exercise>({
   date: {
     type: Date,
     required: true,
+  },
+  picture: {
+    type: String
   },
 });
 

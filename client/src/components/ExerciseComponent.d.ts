@@ -3,4 +3,5 @@ export interface Exercise {
   name: string;
   amount: number;
   date: Date;
+  picture: string;
 }

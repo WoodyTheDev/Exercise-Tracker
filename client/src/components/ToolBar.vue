@@ -6,10 +6,6 @@
       <span>{{ $route.meta.title }}</span>
     </v-toolbar-title>
     <v-spacer></v-spacer>
-    <v-btn>
-      <span class="mr-3 font-weight-light">Sign Out</span>
-      <v-icon right>mdi-export</v-icon>
-    </v-btn>
   </v-toolbar>
 
   <v-navigation-drawer color="deep-orange" v-model="drawer" app temporary>

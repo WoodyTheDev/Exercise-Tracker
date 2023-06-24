@@ -25,8 +25,9 @@ router.get('/unique/', async (req: Request, res: Response) => {
 })
 
 router.post('/', async (req: Request, res: Response) => {
-    const newExercise = new Exercise(req.body)
     try {
+        const newExercise = new Exercise(req.body)
+        checkIfExerciseIsValid(newExercise);
         const exercise = await newExercise.save()
         if (!exercise) throw new Error('Something went wrong saving the exercise')
         res.status(200).json(exercise)
@@ -38,6 +39,7 @@ router.post('/', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
     try {
         const exercise = await Exercise.findByIdAndUpdate(req.params.id.trim(), req.body, { new: true })
+        checkIfExerciseIsValid(exercise);
         if (!exercise) throw new Error('Something went wrong updating the exercise')
         res.status(200).json(exercise)
     } catch (error: any) {
@@ -56,5 +58,14 @@ router.delete('/:id', async (req: Request, res: Response) => {
         res.status(500).json({ message: error.message })
     }
 })
+
+function checkIfExerciseIsValid(exercise: typeof Exercise) {
+    if(exercise.amount < 1) {
+        throw new Error("Amount is below 1");
+    }
+    if(exercise.picture != "" && !exercise.picture.startsWith("data:image")) {
+        throw new Error("Picture is not a picture");
+    }
+}
 
 module.exports = router

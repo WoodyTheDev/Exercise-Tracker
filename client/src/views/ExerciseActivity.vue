@@ -1,11 +1,15 @@
 <template>
   <ToolBar />
-  <VDataTable
+  <VDataTableServer
     v-model:items-per-page="itemsPerPage"
+    :items-length="allItemsLength"
     :items="exercises"
     :headers="headers"
     :item-key="itemKey"
+    :search="search"
     item-value="exercise"
+    :loading="loading"
+    @update:options="loadItems"
   >
     <template v-slot:top>
       <v-dialog v-model="dialogEdit" max-width="500px">
@@ -92,25 +96,19 @@
       </v-icon>
       <v-icon size="small" @click="deleteItem(item.raw)"> mdi-delete </v-icon>
     </template>
-  </VDataTable>
+  </VDataTableServer>
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
 import ToolBar from "@/components/ToolBar.vue";
-import { VDataTable } from "vuetify/lib/labs/components.mjs";
 import ExerciseComponent from "@/components/ExerciseComponent.vue";
 import { Exercise } from "@/components/ExerciseComponent.d";
-
-type UnwrapReadonlyArrayType<A> = A extends Readonly<Array<infer I>>
-  ? UnwrapReadonlyArrayType<I>
-  : A;
-type DT = InstanceType<typeof VDataTable>;
-type ReadonlyDataTableHeader = UnwrapReadonlyArrayType<DT["headers"]>;
+import { VDataTableServer } from "vuetify/lib/labs/components.mjs";
 
 export default defineComponent({
   name: "ExerciseActivity",
 
-  components: { ToolBar, VDataTable, ExerciseComponent },
+  components: { ToolBar, VDataTableServer, ExerciseComponent },
 
   data() {
     return {
@@ -118,13 +116,16 @@ export default defineComponent({
       dialogImage: false,
       dialogDelete: false,
       itemsPerPage: 10,
+      allItemsLength: 0,
+      loading: true,
       headers: [
         { title: "Exercise", key: "name" },
         { title: "Repititions/Km", key: "amount" },
         { title: "Date", key: "date" },
         { title: "Actions", key: "actions", sortable: false },
-      ] as Array<ReadonlyDataTableHeader>,
+      ],
       exercises: [] as Array<Exercise>,
+      search: "",
       editedIndex: -1,
       editedItem: {} as Exercise,
       defaultItem: {} as Exercise,
@@ -141,8 +142,13 @@ export default defineComponent({
     },
   },
   async mounted() {
-    const response = await this.axios.get("api/exerciseList/");
-    this.exercises = response.data;
+    console.log("mounted");
+    try {
+      const response = await this.axios.get("api/exerciseList/allItemsLength");
+      this.allItemsLength = response.data;
+    } catch (error) {
+      console.error(error);
+    }
   },
   computed: {
     itemKey() {
@@ -172,6 +178,20 @@ export default defineComponent({
       this.editedItem = Object.assign({}, item);
       this.editedIndex = this.exercises.indexOf(item);
       this.dialogEdit = true;
+    },
+    loadItems(options: any) {
+      const page = options.page;
+      const itemsPerPage = options.itemsPerPage;
+      this.loading = true;
+      this.axios
+        .get("api/exerciseList/" + page + "/" + itemsPerPage)
+        .then((response) => {
+          this.exercises = response.data;
+          this.loading = false;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     },
     async saveEdit() {
       try {

@@ -103,16 +103,32 @@ export default defineComponent({
   },
   methods: {
     async addExercise(e: Event) {
-      this.exercise.picture = this.base64data;
-      this.exercise.date = new Date();
-      const response = await this.axios.post(
-        "api/exerciseList/",
-        this.exercise
-      );
-      (
-        this.$refs.exerciseComponent as typeof ExerciseComponent
-      ).addExerciseToCombobox(e, response.data.name);
-      this.base64data = "";
+      if (
+        this.exercise.name &&
+        this.exercise.name != "" &&
+        this.exercise.amount &&
+        this.exercise.amount > 0
+      ) {
+        this.exercise.picture = this.base64data;
+        this.exercise.date = new Date();
+        let exerciseName = "";
+        try {
+          const response = await this.axios.post(
+            "api/exerciseList/set/",
+            this.exercise
+          );
+          exerciseName = response.data.name;
+        } catch (error) {
+          console.error(error);
+          exerciseName = this.exercise.name;
+        }
+
+        (
+          this.$refs.exerciseComponent as typeof ExerciseComponent
+        ).addExerciseToCombobox(e, exerciseName);
+
+        this.base64data = "";
+      }
     },
     snapshotAndCloseDialog() {
       console.log(this.width);

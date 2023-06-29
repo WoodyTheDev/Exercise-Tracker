@@ -10,6 +10,7 @@
     color="deep-orange-lighten-2"
     :items="exerciseNameList"
     hide-details="auto"
+    :rules="[(v) => !!v || 'Required']"
   ></v-combobox>
   <v-combobox
     ref="exerciseAmountCombobox"
@@ -24,6 +25,11 @@
     :items="amountList"
     hide-details="auto"
     class="mt-4"
+    :rules="[
+      (v) => !!v || 'Required',
+      (v) => /^\d+$/.test(v) || 'Only positiv numbers',
+      (v) => !/^0+$/.test(v) || 'No leading zeros',
+    ]"
   ></v-combobox>
 </template>
 
@@ -55,8 +61,14 @@ export default defineComponent({
     };
   },
   async mounted() {
-    const response = await this.axios.get("api/exerciseList/unique/");
-    this.exerciseNameList = response.data;
+    const response = await this.axios.get("api/exerciseList/get/unique/");
+    try {
+      const jsonObject = JSON.parse(response.data);
+      this.exerciseNameList = jsonObject[0].list;
+    } catch (e) {
+      this.exerciseNameList = response.data.list;
+    }
+
     this.updateExerciseNameCombobox(this.exerciseName);
     this.updateExerciseAmountCombobox(this.exerciseAmount);
   },

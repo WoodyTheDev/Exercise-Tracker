@@ -37,6 +37,7 @@
                     color="deep-orange-lighten-2"
                     type="date"
                     hide-details="auto"
+                    :rules="[(v) => !!v || 'Required']"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -142,10 +143,17 @@ export default defineComponent({
     },
   },
   async mounted() {
-    console.log("mounted");
     try {
-      const response = await this.axios.get("api/exerciseList/allItemsLength");
-      this.allItemsLength = response.data;
+      const response = await this.axios.get(
+        "api/exerciseList/get/allItemsLength/"
+      );
+
+      try {
+        const jsonObject = JSON.parse(response.data);
+        this.allItemsLength = jsonObject[0].count;
+      } catch (e) {
+        this.allItemsLength = response.data.count;
+      }
     } catch (error) {
       console.error(error);
     }
@@ -184,9 +192,22 @@ export default defineComponent({
       const itemsPerPage = options.itemsPerPage;
       this.loading = true;
       this.axios
-        .get("api/exerciseList/" + page + "/" + itemsPerPage)
+        .get("api/exerciseList/get/" + page + "/" + itemsPerPage)
         .then((response) => {
-          this.exercises = response.data;
+          try {
+            // console.log("EXERCISE-JSON: " + response.data);
+            const jsonObject = JSON.parse(response.data);
+            // console.log("EXERCISE-JSON: " + jsonObject);
+            let startIndex = (page - 1) * 10;
+            let endIndex = startIndex + itemsPerPage;
+            this.exercises = Object.values(jsonObject).slice(
+              startIndex,
+              endIndex
+            ) as Exercise[];
+          } catch (e) {
+            // console.log("EXERCISE: " + response.data);
+            this.exercises = response.data;
+          }
           this.loading = false;
         })
         .catch((error) => {
@@ -196,7 +217,7 @@ export default defineComponent({
     async saveEdit() {
       try {
         const response = await this.axios.put(
-          "api/exerciseList/ " + this.editedItem._id,
+          "api/exerciseList/set/" + this.editedItem._id,
           {
             name: this.editedItem.name,
             amount: this.editedItem.amount,
@@ -219,8 +240,15 @@ export default defineComponent({
     },
     async deleteItemConfirm() {
       try {
-        await this.axios.delete("api/exerciseList/" + this.editedItem._id);
+        await this.axios.delete("api/exerciseList/set/" + this.editedItem._id, {
+          data: {
+            name: this.editedItem.name,
+            amount: this.editedItem.amount,
+            date: new Date(this.editedItem.date),
+          },
+        });
         this.exercises.splice(this.editedIndex, 1);
+        this.allItemsLength = this.allItemsLength - 1;
       } catch (error) {
         console.error(error);
       }

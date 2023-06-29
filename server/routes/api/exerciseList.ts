@@ -4,20 +4,21 @@ import { Request, Response } from "express";
 
 const router = Router();
 
-router.get("/allItemsLength/", async (req: Request, res: Response) => {
+router.get("/get/allItemsLength/", async (req: Request, res: Response) => {
   try {
     const count = await Exercise.countDocuments();
-    res.status(200).json(count);
+    const body = {count: count};
+    res.status(200).json(body);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 });
 
-router.get("/:page/:itemsPerPage/", async (req: Request, res: Response) => {
+router.get("/get/:page/:itemsPerPage/", async (req: Request, res: Response) => {
   try {
     const { page, itemsPerPage } = req.params;
     const exerciseList = await Exercise.find()
-      .limit(itemsPerPage)
+      .limit(parseInt(itemsPerPage))
       .skip(parseInt(itemsPerPage) * (parseInt(page) - 1));
     if (!exerciseList) throw new Error("No exercise List found");
     res.status(200).json(exerciseList);
@@ -26,17 +27,18 @@ router.get("/:page/:itemsPerPage/", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/unique/", async (req: Request, res: Response) => {
+router.get("/get/unique/", async (req: Request, res: Response) => {
   try {
     const uniqueExerciseList = await Exercise.distinct("name");
     if (!uniqueExerciseList) throw new Error("No exercise List found");
-    res.status(200).json(uniqueExerciseList);
+    const body = {list : uniqueExerciseList};
+    res.status(200).json(body);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 });
 
-router.post("/", async (req: Request, res: Response) => {
+router.post("/set/", async (req: Request, res: Response) => {
   try {
     const newExercise = new Exercise(req.body);
     checkIfExerciseIsValid(newExercise);
@@ -48,7 +50,7 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-router.put("/:id", async (req: Request, res: Response) => {
+router.put("/set/:id", async (req: Request, res: Response) => {
   try {
     const exercise = await Exercise.findByIdAndUpdate(
       req.params.id.trim(),
@@ -65,7 +67,7 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.delete("/:id", async (req: Request, res: Response) => {
+router.delete("/set/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     const removed = await Exercise.findByIdAndDelete(id);
